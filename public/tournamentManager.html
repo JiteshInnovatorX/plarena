@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tournaments Manager</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body class="bg-light">
+  <div class="container mt-5">
+    <h2 class="mb-4 text-center">Manage Posted Tournaments</h2>
+    <div class="mb-3">
+      <label>Email ID (Organizer)</label>
+      <input type="email" class="form-control" id="emailid" placeholder="Enter organizer email..." />
+    </div>
+    <button class="btn btn-primary mb-4" id="fetchBtn">Fetch All</button>
+    <table class="table table-bordered table-striped" id="tournamentsTable">
+      <thead class="table-dark">
+        <tr>
+          <th>Event Title</th>
+          <th>Date</th>
+          <th>City</th>
+          <th>Sports</th>
+          <th>Fee</th>
+          <th>Prize</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script>
+    $("#fetchBtn").click(function () {
+      const emailid = $("#emailid").val().trim();
+      if (!emailid) {
+        alert("Please enter your email.");
+        return;
+      }
+      $.ajax({
+        url: "http://localhost:8005/getTournaments",
+        method: "GET",
+        data: { emailid },
+        success: function (response) {
+          const rows = response.map(event => `
+            <tr>
+              <td>${event.event}</td>
+              <td>${event.doe}</td>
+              <td>${event.city}</td>
+              <td>${event.sports}</td>
+              <td>${event.fee}</td>
+              <td>${event.prize}</td>
+              <td>
+                <button class="btn btn-danger btn-sm" onclick="deleteTournament(${event.rid},'${emailid}')">Delete</button>
+              </td>
+            </tr>
+          `);
+          $("#tournamentsTable tbody").html(rows.join(""));
+        },
+        error: function (xhr) {
+          alert(xhr.responseText || "Unable to fetch tournaments.");
+        }
+      });
+    });
+
+    function deleteTournament(rid, emailid) {
+      if (!confirm("Delete this event?")) return;
+      $.ajax({
+        url: "http://localhost:8005/deleteTournament",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ rid }),
+        success: function (response) {
+          alert(response.message);
+          $("#fetchBtn").click(); // Refresh listing
+        },
+        error: function (xhr) {
+          alert(xhr.responseText || "Unable to delete.");
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post Tournament</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body class="bg-light">
+  <div class="container mt-5">
+    <h2 class="mb-4 text-center">Post Tournament</h2>
+    <form id="postEventForm" class="bg-white shadow rounded p-4">
+
+      <div class="row mb-3">
+        <div class="col">
+          <label>Email ID (Organizer)</label>
+          <input type="email" class="form-control" id="emailid" required />
+        </div>
+        <div class="col">
+          <label>Event Title</label>
+          <input type="text" class="form-control" id="event" required />
+        </div>
+      </div>
+      
+      <div class="row mb-3">
+        <div class="col">
+          <label>Date</label>
+          <input type="date" class="form-control" id="doe" required />
+        </div>
+        <div class="col">
+          <label>Time</label>
+          <input type="time" class="form-control" id="toe" required />
+        </div>
+      </div>
+      
+      <div class="row mb-3">
+        <div class="col">
+          <label>Location/Address</label>
+          <input type="text" class="form-control" id="address" required />
+        </div>
+        <div class="col">
+          <label>City</label>
+          <input type="text" class="form-control" id="city" required />
+        </div>
+      </div>
+      
+      <div class="row mb-3">
+        <div class="col">
+          <label>Sports Category</label>
+          <select class="form-select" id="sports" required>
+            <option value="Cricket">Cricket</option>
+            <option value="Football">Football</option>
+          </select>
+        </div>
+        <div class="col">
+          <label>Min Age</label>
+          <input type="number" class="form-control" id="minage" required />
+        </div>
+        <div class="col">
+          <label>Max Age</label>
+          <input type="number" class="form-control" id="maxage" required />
+        </div>
+      </div>
+      
+      <div class="row mb-3">
+        <div class="col">
+          <label>Last Date Of Registration</label>
+          <input type="date" class="form-control" id="lastdate" required />
+        </div>
+        <div class="col">
+          <label>Fee</label>
+          <input type="number" class="form-control" id="fee" required />
+        </div>
+        <div class="col">
+          <label>Prize Money</label>
+          <input type="number" class="form-control" id="prize" required />
+        </div>
+      </div>
+      
+      <div class="mb-3">
+        <label>Contact Person</label>
+        <input type="text" class="form-control" id="contact" required />
+      </div>
+
+      <button type="button" id="btnPublish" class="btn btn-primary w-100">Publish Event</button>
+    </form>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script>
+    $("#btnPublish").click(function () {
+      const form = {
+        emailid: $("#emailid").val().trim(),
+        event: $("#event").val().trim(),
+        doe: $("#doe").val(),
+        toe: $("#toe").val(),
+        address: $("#address").val().trim(),
+        city: $("#city").val().trim(),
+        sports: $("#sports").val(),
+        minage: $("#minage").val(),
+        maxage: $("#maxage").val(),
+        lastdate: $("#lastdate").val(),
+        fee: $("#fee").val(),
+        prize: $("#prize").val(),
+        contact: $("#contact").val().trim()
+      };
+
+      // Check if any field is missing
+      if (Object.values(form).some(v => v === "")) {
+        alert("Please fill all fields.");
+        return;
+      }
+
+      $.ajax({
+        url: "http://localhost:8005/postTournament",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(form),
+        success: function (response) {
+          alert(response.message || "Event posted!");
+          $("#postEventForm")[0].reset();
+        },
+        error: function (xhr) {
+          alert("Error: " + xhr.responseText);
+        },
+      });
+    });
+  </script>
+</body>
+</html>
