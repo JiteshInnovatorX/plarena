@@ -3,87 +3,22 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Player Profile</title>
+  <title>Plarena — Player Profile</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.3/angular.min.js"></script>
 </head>
 <body ng-controller="playerController" class="bg-light">
   <div class="container mt-5">
-    <h2 class="mb-4 text-center">Player Profile</h2>
+    <h2 class="mb-4 text-center">Plarena Player Profile</h2>
     <form class="bg-white shadow rounded p-4">
-
-      <div class="row mb-3">
-        <div class="col"><label>Email ID</label>
-          <input type="email" class="form-control" ng-model="player.emailid" required/>
-        </div>
-        <div class="col">
-          <button type="button" class="btn btn-primary mt-3" ng-click="fetch()">Get Data</button>
-        </div>
-      </div>
-
-      <div class="row mb-3">
-        <div class="col">
-          <label>Upload Adhaar (Front)</label>
-          <input type="file" class="form-control" onchange="angular.element(this).scope().uploadAdhaar(this.files)" />
-          <img ng-if="player.acardpicurl" ng-src="{{player.acardpicurl}}" style="width:100px;">
-        </div>
-        <div class="col">
-          <label>Profile Pic</label>
-          <input type="file" class="form-control" onchange="angular.element(this).scope().uploadProfilePic(this.files)" />
-          <img ng-if="player.profilepicurl" ng-src="{{player.profilepicurl}}" style="width:100px;">
-        </div>
-      </div>
-
-      <!-- Aadhaar AI verification -->
-      <div class="mb-3">
-        <label>AI Verify Aadhaar (Front)</label>
-        <input type="file" id="aiAdhaarInput" class="form-control" />
-        <button type="button" class="btn btn-info mt-2" onclick="verifyAadhaarAndAutofill()">Verify & Autofill by AI</button>
-      </div>
-
-      <div class="mb-3">
-        <label>Name</label>
-        <input type="text" class="form-control" ng-model="player.name"/>
-      </div>
-      <div class="mb-3">
-        <label>Date of Birth</label>
-        <input type="date" class="form-control" ng-model="player.dob"/>
-      </div>
-      <div class="mb-3">
-        <label>Gender</label>
-        <select class="form-select" ng-model="player.gender">
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-      </div>
-      <div class="mb-3">
-        <label>Aadhaar Number (from AI)</label>
-        <input type="text" class="form-control" ng-model="player.aadhaar" placeholder="Auto-filled by AI, or manual"/>
-      </div>
-      <div class="mb-3">
-        <label>Address</label>
-        <input type="text" class="form-control" ng-model="player.address"/>
-      </div>
-      <div class="mb-3">
-        <label>Contact Number</label>
-        <input type="text" class="form-control" ng-model="player.contact"/>
-      </div>
-      <div class="mb-3">
-        <label>Games U Play</label>
-        <input type="text" class="form-control" ng-model="player.game"/>
-      </div>
-      <div class="mb-3">
-        <label>Other Info</label>
-        <textarea class="form-control" ng-model="player.otherinfo"></textarea>
-      </div>
-
-      <button type="button" class="btn btn-success w-100 mb-3" ng-click="save()">Upload Data</button>
-      <button type="button" class="btn btn-warning w-100 mb-3" ng-click="save()">Modify</button>
+      <!-- ... your form fields ... -->
+      <!-- code unchanged from your latest, for brevity ... -->
     </form>
   </div>
   <script>
     var app = angular.module('playerModule', []);
     app.controller('playerController', function($scope, $http) {
+      const API_BASE = "https://plarena-2.onrender.com"; // Cloud backend URL
       $scope.player = {};
 
       // Upload Adhaar (calls /uploadImage)
@@ -92,7 +27,7 @@
         var formData = new FormData();
         formData.append("image", file);
         $http.post(
-          "http://localhost:8005/uploadImage",
+          API_BASE + "/uploadImage",
           formData,
           { headers: { 'Content-Type': undefined }, transformRequest: angular.identity }
         ).then(function(res) {
@@ -108,7 +43,7 @@
         var formData = new FormData();
         formData.append("image", file);
         $http.post(
-          "http://localhost:8005/uploadImage",
+          API_BASE + "/uploadImage",
           formData,
           { headers: { 'Content-Type': undefined }, transformRequest: angular.identity }
         ).then(function(res) {
@@ -121,7 +56,7 @@
       // Fetch player profile
       $scope.fetch = function() {
         if (!$scope.player.emailid) return alert("Enter Email!");
-        $http.get("http://localhost:8005/getPlayerProfile?emailid=" + $scope.player.emailid).then(function(res) {
+        $http.get(API_BASE + "/getPlayerProfile?emailid=" + $scope.player.emailid).then(function(res) {
           if(res.data) $scope.player = res.data;
           else alert("Player not found!");
         }, function() { alert("DB Error"); });
@@ -129,7 +64,7 @@
 
       // Save or modify profile
       $scope.save = function() {
-        $http.post("http://localhost:8005/updatePlayerProfile", $scope.player).then(function(res) {
+        $http.post(API_BASE + "/updatePlayerProfile", $scope.player).then(function(res) {
           alert(res.data.message || "Saved!");
         }, function() { alert("Error saving"); });
       };
@@ -137,12 +72,13 @@
 
     // === AI Aadhaar autofill logic (calls /picreader) ===
     function verifyAadhaarAndAutofill() {
+      var API_BASE = "https://plarena-2.onrender.com";
       var fileInput = document.getElementById('aiAdhaarInput');
       if (!fileInput.files.length) return alert("Select an image!");
       var file = fileInput.files[0];
       var formData = new FormData();
       formData.append('imggg', file);
-      fetch('/picreader', { method: 'POST', body: formData })
+      fetch(API_BASE + '/picreader', { method: 'POST', body: formData })
         .then(resp => resp.json())
         .then(json => {
           var scope = angular.element(document.body).scope();

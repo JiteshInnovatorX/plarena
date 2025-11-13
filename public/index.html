@@ -257,6 +257,9 @@
     // Your full jQuery and AJAX logic from index.html goes here!
     // (See previous replies for the full working script for signup/login/OTP/password strength)
 $(document).ready(function () {
+  // Set API base to live Render URL
+  const API_BASE = "https://plarena-2.onrender.com";
+
   // ========== LOGIN WITH OTP ==========
   $("#btnSendOTP").click(function () {
     const email = $("#loginEmail").val().trim();
@@ -268,7 +271,7 @@ $(document).ready(function () {
     $(this).prop("disabled", true).html('<span class="spinner-border spinner-border-sm"></span> Sending...');
 
     $.ajax({
-      url: "http://localhost:8005/sendLoginOTP",
+      url: API_BASE + "/sendLoginOTP",
       method: "POST",
       contentType: "application/json",
       data: JSON.stringify({ emailid: email }),
@@ -303,7 +306,7 @@ $(document).ready(function () {
     }
 
     $.ajax({
-      url: "http://localhost:8005/loginWithOTP",
+      url: API_BASE + "/loginWithOTP",
       method: "POST",
       contentType: "application/json",
       data: JSON.stringify({ emailid, otp }),
@@ -388,7 +391,7 @@ $(document).ready(function () {
     }
 
     $.ajax({
-      url: "http://localhost:8005/signup",
+      url: API_BASE + "/signup",
       method: "POST",
       contentType: "application/json",
       data: JSON.stringify({ email, password, utype }),
@@ -405,6 +408,7 @@ $(document).ready(function () {
     });
   });
 });
+
 </script>
 
   
