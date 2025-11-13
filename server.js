@@ -117,11 +117,22 @@ app.post("/signupWithVerification", (req, res) => {
 // ============== OTP LOGIN ==============
 app.post("/sendLoginOTP", (req, res) => {
   const { emailid } = req.body;
-  if (!emailid) return res.status(400).send({ message: "Email is required!" });
+  console.log("OTP request for:", emailid);
+
+  if (!emailid){
+  console.log("No emailid provided!"); 
+  return res.status(400).send({ message: "Email is required!" });}
+
   db.query("SELECT * FROM users WHERE emailid = ?", [emailid], (err, results) => {
-    if (err) return res.status(500).send({ message: "Database error!" });
-    if (results.length === 0) return res.status(404).send({ message: "User not found! Please signup first." });
-    if (results[0].status === 0) return res.status(403).send({ message: "Your account is blocked!" });
+    if (err) {
+      console.error("Check User Error:", err);
+      return res.status(500).send({ message: "Database error!" });}
+    if (results.length === 0) {
+      console.log("User not found:", emailid);
+      return res.status(404).send({ message: "User not found! Please signup first." });}
+    if (results[0].status === 0) {
+      console.log("Account blocked:", emailid);
+      return res.status(403).send({ message: "Your account is blocked!" });}
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     loginOTPs[emailid] = { otp, expiry: Date.now() + 5 * 60 * 1000, utype: results[0].utype };
     const mailOptions = {
@@ -144,8 +155,12 @@ app.post("/sendLoginOTP", (req, res) => {
           </div>
         </div>`
     };
+    console.log("Sending OTP to:", emailid);
     transporter.sendMail(mailOptions, (error, info) => {
-      if (error) return res.status(500).send({ message: "Failed to send OTP email!" });
+      if (error) {
+        console.error("Email Send Error:", error); 
+        return res.status(500).send({ message: "Failed to send OTP email!" });}
+        console.log("Login OTP sent:", info.response);
       res.send({ message: "OTP sent to your email!" });
     });
   });
