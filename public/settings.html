@@ -31,7 +31,7 @@
   </div>
   <script>
     angular.module('settingsApp', []).controller('settingsController', function($scope, $http) {
-      const API_BASE = "https://plarena-2.onrender.com";
+      const API_BASE = "http://localhost:8005";
       $scope.user = {};
       $scope.changePassword = function() {
         $http.put(API_BASE + "/user/password", $scope.user).then(function(res){

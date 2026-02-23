@@ -1,29 +1,83 @@
 <!DOCTYPE html>
 <html lang="en" ng-app="orgModule">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Plarena — Organizer Details</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.3/angular.min.js"></script>
 </head>
+
 <body ng-controller="orgController" class="bg-light">
   <div class="container mt-5">
     <h2 class="mb-4 text-center">Plarena Organizer Profile/Details</h2>
     <form class="bg-white shadow rounded p-4">
-      <!-- Your form UI remains unchanged -->
-      ...
+      <div class="mb-3">
+        <label class="form-label">Email ID (Identifier)</label>
+        <div class="input-group">
+          <input type="email" class="form-control" ng-model="org.emailid"
+            placeholder="Enter your email to fetch details" required>
+          <button type="button" class="btn btn-primary" ng-click="fetch()">Fetch Details</button>
+        </div>
+        <small class="text-muted">Enter email and click Fetch to load existing details.</small>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Organization / Organizer Name</label>
+          <input type="text" class="form-control" ng-model="org.name" placeholder="e.g. City Sports Club">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Contact Number</label>
+          <input type="text" class="form-control" ng-model="org.contact" placeholder="+91 9876543210">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Address</label>
+        <textarea class="form-control" ng-model="org.address" rows="2" placeholder="Full address"></textarea>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">City</label>
+          <input type="text" class="form-control" ng-model="org.city">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">State</label>
+          <input type="text" class="form-control" ng-model="org.state">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Website (Optional)</label>
+        <input type="url" class="form-control" ng-model="org.website" placeholder="https://example.com">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Organization Logo / Profile Pic</label>
+        <input type="file" class="form-control" onchange="angular.element(this).scope().uploadPic(this.files)">
+        <div class="mt-2" ng-if="org.picurl">
+          <img ng-src="{{org.picurl}}" alt="Profile Pic"
+            style="height: 100px; border-radius: 8px; border: 1px solid #ddd;">
+        </div>
+      </div>
+
+      <div class="d-grid gap-2">
+        <button type="button" class="btn btn-success" ng-click="save()">Save / Update Details</button>
+      </div>
     </form>
   </div>
   <script>
     var app = angular.module('orgModule', []);
-    app.controller('orgController', function($scope, $http) {
-      const API_BASE = "https://plarena-2.onrender.com"; // Your Render backend API base
+    app.controller('orgController', function ($scope, $http) {
+      const API_BASE = "http://localhost:8005"; // Your Render backend API base
 
       $scope.org = {};
 
       // For file upload to Cloudinary
-      $scope.uploadPic = function(files) {
+      $scope.uploadPic = function (files) {
         var file = files[0];
         var formData = new FormData();
         formData.append("file", file);
@@ -32,30 +86,31 @@
         $http.post(
           "https://api.cloudinary.com/v1_1/dxhppdgxv/image/upload", // use your cloud name here
           formData,
-          { headers: {'Content-Type': undefined}, transformRequest: angular.identity }
-        ).then(function(res) {
+          { headers: { 'Content-Type': undefined }, transformRequest: angular.identity }
+        ).then(function (res) {
           $scope.org.picurl = res.data.secure_url;
-        }, function() {
+        }, function () {
           alert("Image upload failed.");
         });
       };
 
       // Fetch from backend
-      $scope.fetch = function() {
+      $scope.fetch = function () {
         if (!$scope.org.emailid) return alert("Enter Email!");
-        $http.get(API_BASE + "/getOrganizerDetails?emailid=" + $scope.org.emailid).then(function(res) {
+        $http.get(API_BASE + "/getOrganizerDetails?emailid=" + $scope.org.emailid).then(function (res) {
           if (res.data) $scope.org = res.data;
           else alert("Organizer not found!");
-        }, function() { alert("DB Error");});
+        }, function () { alert("DB Error"); });
       };
 
       // Save/Modify
-      $scope.save = function() {
-        $http.post(API_BASE + "/updateOrganizerDetails", $scope.org).then(function(res) {
+      $scope.save = function () {
+        $http.post(API_BASE + "/updateOrganizerDetails", $scope.org).then(function (res) {
           alert(res.data.message || "Saved!");
-        }, function() { alert("Error saving");});
+        }, function () { alert("Error saving"); });
       };
     });
   </script>
 </body>
+
 </html>

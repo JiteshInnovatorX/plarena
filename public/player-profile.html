@@ -1,80 +1,272 @@
 <!DOCTYPE html>
 <html lang="en" ng-app="playerModule">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Plarena — Player Profile</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.3/angular.min.js"></script>
 </head>
+
 <body ng-controller="playerController" class="bg-light">
   <div class="container mt-5">
     <h2 class="mb-4 text-center">Plarena Player Profile</h2>
     <form class="bg-white shadow rounded p-4">
       <!-- ... your form fields ... -->
-      <!-- code unchanged from your latest, for brevity ... -->
+      <!-- Example field: -->
+      <!-- <input type="file" onchange="angular.element(this).scope().uploadAdhaar(this.files)" /> -->
+      <div class="mb-3">
+        <label>Email ID</label>
+        <input type="email" class="form-control" ng-model="player.emailid" required>
+        <button type="button" class="btn btn-primary mt-2" ng-click="fetch()">Get Data</button>
+      </div>
+
+      <div class="mb-3">
+        <label>Upload Aadhaar Front (AI Auto-Fill Enabled)</label>
+        <input type="file" id="aadhaarUpload" class="form-control" accept="image/*"
+          onchange="angular.element(this).scope().uploadAdhaarWithAI(this.files)" />
+        <small class="text-muted">Upload your Aadhaar card - AI will automatically detect and fill your details!</small>
+        <div ng-if="isProcessingAadhaar" class="mt-2">
+          <div class="spinner-border spinner-border-sm text-primary" role="status">
+            <span class="visually-hidden">Processing...</span>
+          </div>
+          <span class="ms-2 text-primary">🤖 AI is reading your Aadhaar card...</span>
+        </div>
+        <img ng-if="player.acardpicurl" ng-src="{{player.acardpicurl}}" class="mt-2"
+          style="width:150px; border-radius:8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      </div>
+
+      <div class="mb-3">
+        <label>Upload Profile Pic</label>
+        <input type="file" class="form-control" onchange="angular.element(this).scope().uploadProfilePic(this.files)" />
+        <img ng-if="player.profilepicurl" ng-src="{{player.profilepicurl}}" style="width:100px;">
+      </div>
+
+      <div class="mb-3">
+        <label>Name</label>
+        <input type="text" class="form-control" ng-model="player.name" />
+      </div>
+
+      <div class="mb-3">
+        <label>Date of Birth</label>
+        <input type="date" class="form-control" ng-model="player.dob" />
+      </div>
+
+      <div class="mb-3">
+        <label>Gender</label>
+        <select class="form-select" ng-model="player.gender">
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label>Aadhaar Number</label>
+        <input type="text" class="form-control" ng-model="player.aadhaar" />
+      </div>
+
+      <div class="mb-3">
+        <label>Address</label>
+        <input type="text" class="form-control" ng-model="player.address" />
+      </div>
+
+      <div class="mb-3">
+        <label>Contact Number</label>
+        <input type="text" class="form-control" ng-model="player.contact" />
+      </div>
+
+      <div class="mb-3">
+        <label>Games You Play</label>
+        <input type="text" class="form-control" ng-model="player.game" />
+      </div>
+
+      <div class="mb-3">
+        <label>Other Info</label>
+        <textarea class="form-control" ng-model="player.otherinfo"></textarea>
+      </div>
+
+      <button type="button" class="btn btn-success w-100 mb-3" ng-click="save()">Upload Data</button>
+      <button type="button" class="btn btn-warning w-100 mb-3" ng-click="save()">Modify</button>
+
     </form>
   </div>
   <script>
     var app = angular.module('playerModule', []);
-    app.controller('playerController', function($scope, $http) {
-      const API_BASE = "https://plarena-2.onrender.com"; // Cloud backend URL
+    app.controller('playerController', function ($scope, $http) {
+      const API_BASE = "http://localhost:8005";
       $scope.player = {};
 
-      // Upload Adhaar (calls /uploadImage)
-      $scope.uploadAdhaar = function(files) {
+      $scope.isProcessingAadhaar = false;
+
+      // Upload Aadhaar with AI Auto-detection (calls /picreader for AI extraction)
+      $scope.uploadAdhaarWithAI = function (files) {
+        if (!files.length) return alert("No file selected!");
+
         var file = files[0];
+
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          return alert("❌ File size exceeds 10MB limit. Please choose a smaller file.");
+        }
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+          return alert("❌ Invalid file type. Only JPEG, PNG, GIF, WebP are allowed.");
+        }
+
+        $scope.isProcessingAadhaar = true;
+
+        // Step 1: Call /picreader to extract Aadhaar data using Gemini AI
+        var formData = new FormData();
+        formData.append('imggg', file);
+
+        fetch(API_BASE + '/picreader', {
+          method: 'POST',
+          body: formData
+        })
+          .then(resp => resp.json().then(data => ({ ok: resp.ok, data: data, status: resp.status })))
+          .then(({ ok, data, status }) => {
+            if (!ok) {
+              throw new Error(data.error || `Upload failed with status ${status}`);
+            }
+            return data;
+          })
+          .then(aiData => {
+            console.log("AI Extracted Data:", aiData);
+
+            // Check if there was an AI extraction error but image was uploaded
+            if (aiData.error && aiData.url) {
+              console.warn("AI extraction warning:", aiData.error);
+            }
+
+            // Auto-fill the form fields with AI-detected data if available
+            $scope.$apply(function () {
+              if (aiData.name && aiData.name !== 'N/A') {
+                $scope.player.name = aiData.name;
+              }
+              if (aiData.gender && aiData.gender !== 'N/A') {
+                $scope.player.gender = aiData.gender;
+              }
+              if (aiData.dob && aiData.dob !== 'N/A') {
+                $scope.player.dob = aiData.dob;
+              }
+              if (aiData.adhaar_number && aiData.adhaar_number !== 'N/A') {
+                $scope.player.aadhaar = aiData.adhaar_number;
+              }
+
+              // Store the Cloudinary URL from picreader response
+              if (aiData.url) {
+                $scope.player.acardpicurl = aiData.url;
+              }
+
+              $scope.isProcessingAadhaar = false;
+            });
+
+            // Show appropriate message
+            const message = (aiData.name && aiData.adhaar_number)
+              ? "✅ AI successfully detected your Aadhaar details!\n\nName: " + (aiData.name || 'N/A') + "\nDOB: " + (aiData.dob || 'N/A') + "\nGender: " + (aiData.gender || 'N/A') + "\nAadhaar: " + (aiData.adhaar_number || 'N/A')
+              : "✅ Aadhaar uploaded successfully! AI could not extract all details - please fill in manually.";
+
+            alert(message);
+          })
+          .catch(error => {
+            console.error("Aadhaar Upload Error:", error.message);
+            $scope.$apply(function () {
+              $scope.isProcessingAadhaar = false;
+            });
+
+            // Fallback: Just upload the image without AI extraction
+            alert("⚠️ AI extraction failed: " + error.message + "\n\nFalling back to image-only upload...");
+            $scope.uploadAdhaarFallback(files);
+          });
+      };
+
+      // Fallback: Upload Aadhaar without AI (just stores image)
+      $scope.uploadAdhaarFallback = function (files) {
+        if (!files.length) return;
+        var file = files[0];
+
+        // Validate file size
+        if (file.size > 10 * 1024 * 1024) {
+          return alert("❌ File size exceeds 10MB limit.");
+        }
+
         var formData = new FormData();
         formData.append("image", file);
+
         $http.post(
           API_BASE + "/uploadImage",
           formData,
           { headers: { 'Content-Type': undefined }, transformRequest: angular.identity }
-        ).then(function(res) {
+        ).then(function (res) {
           $scope.player.acardpicurl = res.data.url;
-          $scope.$applyAsync && $scope.$applyAsync();
-          alert("Adhaar uploaded!");
-        }, function() { alert("Adhaar upload failed."); });
+          alert("✅ Aadhaar image uploaded successfully!");
+          $scope.$evalAsync();
+        }, function (err) {
+          const errorMsg = err.data?.error || err.statusText || "Unknown error";
+          alert("❌ Aadhaar upload failed: " + errorMsg);
+          console.error("Upload error:", err);
+        });
       };
 
       // Upload Profile Pic (calls /uploadImage)
-      $scope.uploadProfilePic = function(files) {
+      $scope.uploadProfilePic = function (files) {
+        if (!files.length) return alert("No file selected!");
         var file = files[0];
+
+        // Validate file size
+        if (file.size > 10 * 1024 * 1024) {
+          return alert("❌ File size exceeds 10MB limit.");
+        }
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+          return alert("❌ Invalid file type. Only JPEG, PNG, GIF, WebP are allowed.");
+        }
+
         var formData = new FormData();
         formData.append("image", file);
+
         $http.post(
           API_BASE + "/uploadImage",
           formData,
           { headers: { 'Content-Type': undefined }, transformRequest: angular.identity }
-        ).then(function(res) {
+        ).then(function (res) {
           $scope.player.profilepicurl = res.data.url;
-          $scope.$applyAsync && $scope.$applyAsync();
-          alert("Profile pic uploaded!");
-        }, function() { alert("Profile pic upload failed."); });
+          alert("✅ Profile picture uploaded successfully!");
+          $scope.$evalAsync();
+        }, function (err) {
+          const errorMsg = err.data?.error || err.statusText || "Unknown error";
+          alert("❌ Profile picture upload failed: " + errorMsg);
+          console.error("Upload error:", err);
+        });
       };
 
       // Fetch player profile
-      $scope.fetch = function() {
+      $scope.fetch = function () {
         if (!$scope.player.emailid) return alert("Enter Email!");
-        $http.get(API_BASE + "/getPlayerProfile?emailid=" + $scope.player.emailid).then(function(res) {
-          if(res.data) $scope.player = res.data;
+        $http.get(API_BASE + "/getPlayerProfile?emailid=" + $scope.player.emailid).then(function (res) {
+          if (res.data) $scope.player = res.data;
           else alert("Player not found!");
-        }, function() { alert("DB Error"); });
+        }, function () { alert("DB Error"); });
       };
 
       // Save or modify profile
-      $scope.save = function() {
-        $http.post(API_BASE + "/updatePlayerProfile", $scope.player).then(function(res) {
+      $scope.save = function () {
+        $http.post(API_BASE + "/updatePlayerProfile", $scope.player).then(function (res) {
           alert(res.data.message || "Saved!");
-        }, function() { alert("Error saving"); });
+        }, function () { alert("Error saving"); });
       };
     });
 
     // === AI Aadhaar autofill logic (calls /picreader) ===
     function verifyAadhaarAndAutofill() {
-      var API_BASE = "https://plarena-2.onrender.com";
+      var API_BASE = "http://localhost:8005";
       var fileInput = document.getElementById('aiAdhaarInput');
-      if (!fileInput.files.length) return alert("Select an image!");
+      if (!fileInput || !fileInput.files.length) return alert("Select an image!");
       var file = fileInput.files[0];
       var formData = new FormData();
       formData.append('imggg', file);
@@ -82,11 +274,11 @@
         .then(resp => resp.json())
         .then(json => {
           var scope = angular.element(document.body).scope();
-          scope.$apply(function() {
-            if(json.name) scope.player.name = json.name;
-            if(json.gender) scope.player.gender = json.gender;
-            if(json.dob) scope.player.dob = json.dob;
-            if(json.adhaar_number) scope.player.aadhaar = json.adhaar_number;
+          scope.$apply(function () {
+            if (json.name) scope.player.name = json.name;
+            if (json.gender) scope.player.gender = json.gender;
+            if (json.dob) scope.player.dob = json.dob;
+            if (json.adhaar_number) scope.player.aadhaar = json.adhaar_number;
           });
           alert("Aadhaar details auto-filled by AI!");
         })
@@ -94,4 +286,5 @@
     }
   </script>
 </body>
+
 </html>

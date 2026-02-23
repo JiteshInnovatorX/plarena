@@ -4,22 +4,30 @@ const mysql = require("mysql2");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const cloudinary = require('cloudinary').v2;
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
 const fileUploader = require("express-fileupload");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const nodemailer = require('nodemailer');
+const fs = require("fs");
+const path = require("path");
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+
 const app = express();
 
-// ----------- MIDDLEWARE & CONFIG -----------
+//// ----------- MIDDLEWARE & CONFIG ----------- ////
 app.use(fileUploader());
 app.use(cors({
-  origin: 'https://plarena-2.onrender.com', // Change to your deployed frontend URL
+  origin: 'http://localhost:8005', // Change to your deployed frontend URL
   credentials: true
 }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static("public"));
+
+// Create uploads directory if not exists
+const uploadDir = path.join(__dirname, "public", "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -38,7 +46,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// ================ DATABASE CONNECTION ================
+//// ================ DATABASE CONNECTION ================
 const db = mysql.createConnection({
   host: process.env.DB_HOST || "defaultdb-jitesh365days-b913.j.aivencloud.com",
   port: process.env.DB_PORT || 26893,
@@ -52,11 +60,11 @@ db.connect(err => {
   console.log("MySQL Connected!");
 });
 
-// =============== IN-MEMORY STORES ===============
+//// =============== IN-MEMORY STORES ===============
 const verificationCodes = {};
 const loginOTPs = {};
 
-// ============== EMAIL VERIFICATION ROUTES ==============
+//// ============== EMAIL VERIFICATION ROUTES ==============
 app.post("/sendVerificationCode", (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).send({ message: "Email is required!" });
@@ -102,7 +110,6 @@ app.post("/verifyCode", (req, res) => {
   res.send({ message: "Email verified successfully!", verified: true });
 });
 
-// Signup with Verification
 app.post("/signupWithVerification", (req, res) => {
   const { email, password, utype, verified } = req.body;
   if (!email || !password || !utype) return res.status(400).send({ message: "All fields are required!" });
@@ -114,25 +121,27 @@ app.post("/signupWithVerification", (req, res) => {
   });
 });
 
-// ============== OTP LOGIN ==============
+//// ============== OTP LOGIN ==============
 app.post("/sendLoginOTP", (req, res) => {
   const { emailid } = req.body;
   console.log("OTP request for:", emailid);
-
-  if (!emailid){
-  console.log("No emailid provided!"); 
-  return res.status(400).send({ message: "Email is required!" });}
-
+  if (!emailid) {
+    console.log("No emailid provided!");
+    return res.status(400).send({ message: "Email is required!" });
+  }
   db.query("SELECT * FROM users WHERE emailid = ?", [emailid], (err, results) => {
     if (err) {
       console.error("Check User Error:", err);
-      return res.status(500).send({ message: "Database error!" });}
+      return res.status(500).send({ message: "Database error!" });
+    }
     if (results.length === 0) {
       console.log("User not found:", emailid);
-      return res.status(404).send({ message: "User not found! Please signup first." });}
+      return res.status(404).send({ message: "User not found! Please signup first." });
+    }
     if (results[0].status === 0) {
       console.log("Account blocked:", emailid);
-      return res.status(403).send({ message: "Your account is blocked!" });}
+      return res.status(403).send({ message: "Your account is blocked!" });
+    }
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     loginOTPs[emailid] = { otp, expiry: Date.now() + 5 * 60 * 1000, utype: results[0].utype };
     const mailOptions = {
@@ -158,9 +167,10 @@ app.post("/sendLoginOTP", (req, res) => {
     console.log("Sending OTP to:", emailid);
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.error("Email Send Error:", error); 
-        return res.status(500).send({ message: "Failed to send OTP email!" });}
-        console.log("Login OTP sent:", info.response);
+        console.error("Email Send Error:", error);
+        return res.status(500).send({ message: "Failed to send OTP email!" });
+      }
+      console.log("Login OTP sent:", info.response);
       res.send({ message: "OTP sent to your email!" });
     });
   });
@@ -180,7 +190,7 @@ app.post("/loginWithOTP", (req, res) => {
   res.json({ message: "Login successful!", utype: stored.utype, emailid: emailid });
 });
 
-// ============== USER AUTH & PASSWORD ENDPOINTS ==============
+//// ============== USER AUTH & PASSWORD ENDPOINTS ==============
 app.post("/signup", (req, res) => {
   const { email, password, utype } = req.body;
   if (!email || !password || !utype) {
@@ -222,41 +232,170 @@ app.put('/user/password', (req, res) => {
   });
 });
 
-// ============== IMAGE UPLOAD (CLOUDINARY) ==============
-app.post('/uploadImage', upload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).send("No file uploaded");
-  cloudinary.uploader.upload(req.file.path, (err, result) => {
-    if (err) return res.status(500).send("Cloudinary upload failed");
-    res.send({ url: result.secure_url });
-  });
-});
-
-// ============== AI AADHAAR VERIFICATION (GEMINI/Cloudinary) ==============
-async function extractAadhaarData(imgurl) {
-  const prompt = "Read the text on picture and tell all the information in adhaar card and give output STRICTLY in JSON format {adhaar_number:'', name:'', gender:'', dob: ''}. Only output JSON, no code, no markdown!";
-  const imageResp = await fetch(imgurl).then((response) => response.arrayBuffer());
-  const result = await model.generateContent([
-    { inlineData: { data: Buffer.from(imageResp).toString("base64"), mimeType: "image/jpeg" } }, 
-    prompt
-  ]);
-  const cleaned = result.response.text().replace(/``````/g, '').trim();
-  return JSON.parse(cleaned);
-}
-app.post("/picreader", async function (req, res) {
-  if (!req.files || !req.files.imggg) return res.status(400).send("No file uploaded.");
-  const fileName = req.files.imggg.name;
-  const savePath = __dirname + "/public/uploads/" + fileName;
-  await req.files.imggg.mv(savePath);
+//// ============== IMAGE UPLOAD (CLOUDINARY) ==============
+//// ============== IMAGE UPLOAD (CLOUDINARY) ==============
+app.post("/uploadImage", async function (req, res) {
   try {
-    const picUrlResult = await cloudinary.uploader.upload(savePath);
-    const jsonData = await extractAadhaarData(picUrlResult.secure_url || picUrlResult.url);
-    res.send(jsonData);
+    if (!req.files || !req.files.image) {
+      console.log("No file uploaded");
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+    
+    const file = req.files.image;
+    
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      return res.status(400).json({ error: "File size exceeds 10MB limit" });
+    }
+    
+    // Validate file type
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedMimes.includes(file.mimetype)) {
+      return res.status(400).json({ error: "Invalid file type. Only JPEG, PNG, GIF, WebP allowed" });
+    }
+    
+    let fName = Date.now() + "-" + file.name.replace(/\s+/g, "_");
+    let fullPath = path.join(uploadDir, fName);
+    console.log("Saving file to:", fullPath);
+    await file.mv(fullPath);
+
+    console.log("Attempting Cloudinary upload...");
+    const result = await cloudinary.uploader.upload(fullPath, {
+      resource_type: "auto",
+      timeout: 30000
+    });
+    console.log("Cloudinary upload result:", result.secure_url);
+
+    // Delete local file after upload
+    fs.unlink(fullPath, err => { if (err) console.error("File cleanup error:", err); });
+
+    res.json({ url: result.secure_url, message: "Upload successful" });
   } catch (err) {
-    res.status(500).send({ error: err.message });
+    console.error("Upload failed:", err);
+    res.status(500).json({ error: "Cloudinary upload failed: " + err.message });
   }
 });
 
-// ============== PLAYER PROFILE ==============
+
+//// ============== AI AADHAAR VERIFICATION (GEMINI/Cloudinary) ==============
+async function extractAadhaarData(imgurl) {
+  const prompt = "Read the text on the Aadhaar card image and extract ALL information. Return STRICTLY valid JSON format ONLY: {\"adhaar_number\": \"\", \"name\": \"\", \"gender\": \"\", \"dob\": \"\"} with no other text, markdown, or code blocks!";
+  
+  try {
+    console.log("Fetching image from:", imgurl);
+    const imageResp = await fetch(imgurl).then((response) => {
+      if (!response.ok) throw new Error("Failed to fetch image from Cloudinary");
+      return response.arrayBuffer();
+    });
+    
+    console.log("Image fetched, sending to Gemini AI...");
+    const result = await model.generateContent([
+      { inlineData: { data: Buffer.from(imageResp).toString("base64"), mimeType: "image/jpeg" } },
+      prompt
+    ]);
+    
+    let aiText = result.response.text().trim();
+    console.log("Raw Gemini AI response:", aiText);
+    
+    // Remove markdown code blocks if present
+    aiText = aiText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    
+    // Extract JSON from the response
+    let match = aiText.match(/\{[\s\S]*\}/);
+    if (!match) {
+      throw new Error("No JSON found in AI response: " + aiText);
+    }
+    
+    const jsonData = JSON.parse(match[0]);
+    console.log("Successfully parsed JSON:", jsonData);
+    
+    return jsonData;
+  } catch (err) {
+    console.error("Aadhaar extraction error:", err.message);
+    throw new Error("Failed to extract Aadhaar data: " + err.message);
+  }
+}
+
+app.post("/picreader", async (req, res) => {
+  let savePath = null;
+  try {
+    // More precise logs for debugging
+    if (!req.files) {
+      console.log("No files found in request!");
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+    if (!req.files.imggg) {
+      console.log("imggg field not found in files!", Object.keys(req.files));
+      return res.status(400).json({ error: "No Aadhaar image uploaded. Expected field: 'imggg'" });
+    }
+    
+    const file = req.files.imggg;
+    
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      return res.status(400).json({ error: "File size exceeds 10MB limit" });
+    }
+    
+    // Validate file type
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedMimes.includes(file.mimetype)) {
+      return res.status(400).json({ error: "Invalid file type. Only JPEG, PNG, GIF, WebP allowed" });
+    }
+    
+    const fileName = Date.now() + "-" + file.name.replace(/\s+/g, "_");
+    savePath = path.join(uploadDir, fileName);
+    await file.mv(savePath);
+    console.log("File saved to", savePath);
+
+    // Upload to Cloudinary
+    let picUrlResult;
+    try {
+      console.log("Uploading to Cloudinary...");
+      picUrlResult = await cloudinary.uploader.upload(savePath, {
+        resource_type: "auto",
+        timeout: 30000
+      });
+      console.log("Cloudinary upload successful:", picUrlResult.secure_url);
+    } catch (cloudErr) {
+      console.error("Cloudinary upload failed:", cloudErr.message || cloudErr);
+      // Clean up before returning error
+      fs.unlink(savePath, (err) => { if (err) console.error("Cleanup error:", err); });
+      return res.status(500).json({ error: "Cloudinary upload failed: " + cloudErr.message });
+    }
+
+    const cloudinaryUrl = picUrlResult.secure_url || picUrlResult.url;
+    console.log("Using Cloudinary URL for AI extraction:", cloudinaryUrl);
+
+    // Aadhaar Data Extraction
+    let jsonData;
+    try {
+      jsonData = await extractAadhaarData(cloudinaryUrl);
+      console.log("Gemini/AI extraction successful:", jsonData);
+    } catch (aiErr) {
+      console.error("Gemini extraction failed:", aiErr.message);
+      // Still return success with just the image URL if AI fails
+      jsonData = { url: cloudinaryUrl, error: "AI extraction failed but image uploaded successfully" };
+    }
+
+    // Include the Cloudinary URL in the response
+    jsonData.url = cloudinaryUrl;
+    res.json(jsonData);
+
+  } catch (err) {
+    console.error("Unhandled error in /picreader:", err);
+    res.status(500).json({ error: "Processing failed: " + err.message });
+  } finally {
+    // Clean up local file
+    if (savePath) {
+      fs.unlink(savePath, (err) => {
+        if (err) console.error("Failed to delete local upload:", err);
+        else console.log("Local file cleaned up:", savePath);
+      });
+    }
+  }
+});
+
+//// ============== PLAYER PROFILE ==============
 app.get("/getPlayerProfile", (req, res) => {
   db.query("SELECT * FROM players WHERE emailid = ?", [req.query.emailid], (err, results) => {
     if (err) return res.status(500).send("DB error");
@@ -271,7 +410,7 @@ app.post("/updatePlayerProfile", (req, res) => {
   });
 });
 
-// ============== ORGANIZER PROFILE ==============
+//// ============== ORGANIZER PROFILE ==============
 app.get("/getOrganizerDetails", (req, res) => {
   db.query("SELECT * FROM organizers WHERE emailid = ?", [req.query.emailid], (err, results) => {
     if (err) return res.status(500).send("DB error");
@@ -286,7 +425,7 @@ app.post("/updateOrganizerDetails", (req, res) => {
   });
 });
 
-// ============== TOURNAMENT MANAGEMENT ==============
+//// ============== TOURNAMENT MANAGEMENT ==============
 app.post("/postTournament", (req, res) => {
   const data = req.body;
   db.query(
@@ -313,7 +452,7 @@ app.post("/deleteTournament", (req, res) => {
   });
 });
 
-// ============== TOURNAMENT FINDER ==============
+//// ============== TOURNAMENT FINDER ==============
 app.get('/searchTournaments', (req, res) => {
   const { city, sports, age } = req.query;
   let sql = "SELECT * FROM tournaments WHERE 1=1";
@@ -348,7 +487,7 @@ app.get('/distinctSports', (req, res) => {
   });
 });
 
-// ============== ADMIN CONSOLE ==============
+//// ============== ADMIN CONSOLE ==============
 app.get("/admin/users", (req, res) => {
   db.query("SELECT emailid, utype, dos, status FROM users", (err, results) => {
     if (err) return res.status(500).json([]);
@@ -400,12 +539,12 @@ app.delete("/admin/organizer/:emailid", (req, res) => {
   });
 });
 
-// ============== TEST ROUTE ==============
+//// ============== TEST ROUTE ==============
 app.get("/", (req, res) => {
   res.send("🚀 Server is working fine!");
 });
 
-// ============== SERVER START ==============
+//// ============== SERVER START ==============
 const PORT = process.env.PORT || 8005;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
