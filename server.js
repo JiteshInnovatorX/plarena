@@ -212,9 +212,9 @@ app.post("/login", (req, res) => {
     if (results.length > 0) {
       const user = results[0];
       if (user.status === 0) return res.status(403).send("Your account is blocked!");
-      res.json({ message: "✅ Login successful!", utype: user.utype, emailid: user.emailid });
+      res.json({ message: "Login successful!", utype: user.utype, emailid: user.emailid });
     } else {
-      res.status(401).send("❌ Invalid email or password!");
+      res.status(401).send("Invalid email or password!");
     }
   });
 });
@@ -547,5 +547,5 @@ app.get("/", (req, res) => {
 //// ============== SERVER START ==============
 const PORT = process.env.PORT || 8005;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
