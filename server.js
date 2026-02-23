@@ -16,7 +16,7 @@ const app = express();
 //// ----------- MIDDLEWARE & CONFIG ----------- ////
 app.use(fileUploader());
 app.use(cors({
-  origin: 'http://localhost:8005', // Change to your deployed frontend URL
+  origin: true, // Allow all origins for the UI since they are on the same Render host or frontend host
   credentials: true
 }));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -240,20 +240,20 @@ app.post("/uploadImage", async function (req, res) {
       console.log("No file uploaded");
       return res.status(400).json({ error: "No file uploaded" });
     }
-    
+
     const file = req.files.image;
-    
+
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       return res.status(400).json({ error: "File size exceeds 10MB limit" });
     }
-    
+
     // Validate file type
     const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedMimes.includes(file.mimetype)) {
       return res.status(400).json({ error: "Invalid file type. Only JPEG, PNG, GIF, WebP allowed" });
     }
-    
+
     let fName = Date.now() + "-" + file.name.replace(/\s+/g, "_");
     let fullPath = path.join(uploadDir, fName);
     console.log("Saving file to:", fullPath);
@@ -280,35 +280,35 @@ app.post("/uploadImage", async function (req, res) {
 //// ============== AI AADHAAR VERIFICATION (GEMINI/Cloudinary) ==============
 async function extractAadhaarData(imgurl) {
   const prompt = "Read the text on the Aadhaar card image and extract ALL information. Return STRICTLY valid JSON format ONLY: {\"adhaar_number\": \"\", \"name\": \"\", \"gender\": \"\", \"dob\": \"\"} with no other text, markdown, or code blocks!";
-  
+
   try {
     console.log("Fetching image from:", imgurl);
     const imageResp = await fetch(imgurl).then((response) => {
       if (!response.ok) throw new Error("Failed to fetch image from Cloudinary");
       return response.arrayBuffer();
     });
-    
+
     console.log("Image fetched, sending to Gemini AI...");
     const result = await model.generateContent([
       { inlineData: { data: Buffer.from(imageResp).toString("base64"), mimeType: "image/jpeg" } },
       prompt
     ]);
-    
+
     let aiText = result.response.text().trim();
     console.log("Raw Gemini AI response:", aiText);
-    
+
     // Remove markdown code blocks if present
     aiText = aiText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    
+
     // Extract JSON from the response
     let match = aiText.match(/\{[\s\S]*\}/);
     if (!match) {
       throw new Error("No JSON found in AI response: " + aiText);
     }
-    
+
     const jsonData = JSON.parse(match[0]);
     console.log("Successfully parsed JSON:", jsonData);
-    
+
     return jsonData;
   } catch (err) {
     console.error("Aadhaar extraction error:", err.message);
@@ -328,20 +328,20 @@ app.post("/picreader", async (req, res) => {
       console.log("imggg field not found in files!", Object.keys(req.files));
       return res.status(400).json({ error: "No Aadhaar image uploaded. Expected field: 'imggg'" });
     }
-    
+
     const file = req.files.imggg;
-    
+
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       return res.status(400).json({ error: "File size exceeds 10MB limit" });
     }
-    
+
     // Validate file type
     const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedMimes.includes(file.mimetype)) {
       return res.status(400).json({ error: "Invalid file type. Only JPEG, PNG, GIF, WebP allowed" });
     }
-    
+
     const fileName = Date.now() + "-" + file.name.replace(/\s+/g, "_");
     savePath = path.join(uploadDir, fileName);
     await file.mv(savePath);

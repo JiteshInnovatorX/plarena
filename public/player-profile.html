@@ -94,7 +94,7 @@
   <script>
     var app = angular.module('playerModule', []);
     app.controller('playerController', function ($scope, $http) {
-      const API_BASE = "http://localhost:8005";
+      const API_BASE = "";
       $scope.player = {};
 
       $scope.isProcessingAadhaar = false;
@@ -264,7 +264,7 @@
 
     // === AI Aadhaar autofill logic (calls /picreader) ===
     function verifyAadhaarAndAutofill() {
-      var API_BASE = "http://localhost:8005";
+      var API_BASE = "";
       var fileInput = document.getElementById('aiAdhaarInput');
       if (!fileInput || !fileInput.files.length) return alert("Select an image!");
       var file = fileInput.files[0];

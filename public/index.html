@@ -1,61 +1,333 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Plarena - Your Gateway to Every Game</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
   <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
   <style>
     /* --- Merge the styles from both pages --- */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
-    .navbar-custom { background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 15px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
-    .navbar-brand { color: white !important; font-size: 28px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-    .nav-btn { background: white; color: #2563eb; border: none; padding: 10px 25px; border-radius: 25px; font-weight: 600; margin: 0 8px; transition: all 0.3s; cursor: pointer; }
-    .nav-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,255,255,0.3); }
-    .nav-btn-outline { background: transparent; color: white; border: 2px solid white; }
-    .nav-btn-outline:hover { background: white; color: #2563eb; }
-    .hero-section { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); padding: 80px 0 40px; text-align: center; }
-    .hero-title { font-size: 56px; font-weight: 800; color: #fbbf24; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; animation: fadeInDown 1s; }
-    .hero-subtitle { font-size: 24px; color: #374151; font-style: italic; margin-bottom: 40px; animation: fadeInUp 1s; }
-    .hero-image { position: relative; width: 100%; height: 500px; background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1600') center/cover; display: flex; align-items: center; justify-content: center; }
-    .hero-overlay { background: rgba(255,255,255,0.95); padding: 50px 70px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.3); animation: zoomIn 0.8s; max-width: 700px; margin: 0 20px; }
-    .hero-overlay h2 { color: #2563eb; font-size: 36px; font-weight: 700; margin-bottom: 15px; }
-    .hero-overlay p { color: #6b7280; font-size: 18px; line-height: 1.6; }
-    .services-section { padding: 80px 0; background: white; }
-    .section-title { background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; font-size: 42px; font-weight: 700; padding: 20px 50px; border-radius: 50px; display: inline-block; margin-bottom: 60px; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3); }
-    .service-card { border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s, box-shadow 0.3s; margin-bottom: 30px; background: white; height: 100%; }
-    .service-card:hover { transform: translateY(-10px); box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
-    .service-card img { width: 100%; height: 250px; object-fit: cover; }
-    .service-body { padding: 30px; background: linear-gradient(135deg, #a5f3fc 0%, #67e8f9 100%); text-align: center; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
-    .service-body h4 { color: #0c4a6e; font-size: 24px; font-weight: 700; margin-bottom: 15px; }
-    .service-body p { color: #0e7490; font-size: 16px; line-height: 1.6; }
-    .mission-section { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); padding: 80px 0; text-align: center; }
-    .mission-section h2 { color: #2563eb; font-size: 42px; font-weight: 700; margin-bottom: 30px; }
-    .mission-section p { font-size: 20px; color: #374151; max-width: 800px; margin: 0 auto 20px; line-height: 1.8; }
-    .footer { background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); color: white; padding: 40px 0 20px; text-align: center; }
-    .footer h5 { font-size: 24px; margin-bottom: 15px; }
-    .footer p { margin: 5px 0; opacity: 0.9; }
-    .social-icons { margin: 20px 0; }
-    .social-icons a { color: white; font-size: 28px; margin: 0 15px; transition: transform 0.3s; display: inline-block; text-decoration: none; }
-    .social-icons a:hover { transform: translateY(-5px); }
-    .password-strength { height: 5px; margin-top: 5px; border-radius: 3px; transition: all 0.3s;}
-    .strength-weak { background: #dc3545; width: 33%; }
-    .strength-medium { background: #ffc107; width: 66%; }
-    .strength-strong { background: #28a745; width: 100%; }
-    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes zoomIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-    @media (max-width: 768px) { .hero-title { font-size: 36px; } .hero-subtitle { font-size: 18px; } .section-title { font-size: 32px; padding: 15px 30px; } .hero-overlay { padding: 30px; } .hero-overlay h2 { font-size: 28px; } }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow-x: hidden;
+    }
+
+    .navbar-custom {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      padding: 15px 0;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .navbar-brand {
+      color: white !important;
+      font-size: 28px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      background: white;
+      color: #2563eb;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 25px;
+      font-weight: 600;
+      margin: 0 8px;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .nav-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+    }
+
+    .nav-btn-outline {
+      background: transparent;
+      color: white;
+      border: 2px solid white;
+    }
+
+    .nav-btn-outline:hover {
+      background: white;
+      color: #2563eb;
+    }
+
+    .hero-section {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      padding: 80px 0 40px;
+      text-align: center;
+    }
+
+    .hero-title {
+      font-size: 56px;
+      font-weight: 800;
+      color: #fbbf24;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      animation: fadeInDown 1s;
+    }
+
+    .hero-subtitle {
+      font-size: 24px;
+      color: #374151;
+      font-style: italic;
+      margin-bottom: 40px;
+      animation: fadeInUp 1s;
+    }
+
+    .hero-image {
+      position: relative;
+      width: 100%;
+      height: 500px;
+      background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1600') center/cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-overlay {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 50px 70px;
+      border-radius: 20px;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+      animation: zoomIn 0.8s;
+      max-width: 700px;
+      margin: 0 20px;
+    }
+
+    .hero-overlay h2 {
+      color: #2563eb;
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+
+    .hero-overlay p {
+      color: #6b7280;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .services-section {
+      padding: 80px 0;
+      background: white;
+    }
+
+    .section-title {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      color: white;
+      font-size: 42px;
+      font-weight: 700;
+      padding: 20px 50px;
+      border-radius: 50px;
+      display: inline-block;
+      margin-bottom: 60px;
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+    }
+
+    .service-card {
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+      margin-bottom: 30px;
+      background: white;
+      height: 100%;
+    }
+
+    .service-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .service-card img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+    }
+
+    .service-body {
+      padding: 30px;
+      background: linear-gradient(135deg, #a5f3fc 0%, #67e8f9 100%);
+      text-align: center;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .service-body h4 {
+      color: #0c4a6e;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+
+    .service-body p {
+      color: #0e7490;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .mission-section {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      padding: 80px 0;
+      text-align: center;
+    }
+
+    .mission-section h2 {
+      color: #2563eb;
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 30px;
+    }
+
+    .mission-section p {
+      font-size: 20px;
+      color: #374151;
+      max-width: 800px;
+      margin: 0 auto 20px;
+      line-height: 1.8;
+    }
+
+    .footer {
+      background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+      color: white;
+      padding: 40px 0 20px;
+      text-align: center;
+    }
+
+    .footer h5 {
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+
+    .footer p {
+      margin: 5px 0;
+      opacity: 0.9;
+    }
+
+    .social-icons {
+      margin: 20px 0;
+    }
+
+    .social-icons a {
+      color: white;
+      font-size: 28px;
+      margin: 0 15px;
+      transition: transform 0.3s;
+      display: inline-block;
+      text-decoration: none;
+    }
+
+    .social-icons a:hover {
+      transform: translateY(-5px);
+    }
+
+    .password-strength {
+      height: 5px;
+      margin-top: 5px;
+      border-radius: 3px;
+      transition: all 0.3s;
+    }
+
+    .strength-weak {
+      background: #dc3545;
+      width: 33%;
+    }
+
+    .strength-medium {
+      background: #ffc107;
+      width: 66%;
+    }
+
+    .strength-strong {
+      background: #28a745;
+      width: 100%;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes zoomIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 36px;
+      }
+
+      .hero-subtitle {
+        font-size: 18px;
+      }
+
+      .section-title {
+        font-size: 32px;
+        padding: 15px 30px;
+      }
+
+      .hero-overlay {
+        padding: 30px;
+      }
+
+      .hero-overlay h2 {
+        font-size: 28px;
+      }
+    }
   </style>
 </head>
+
 <body>
   <nav class="navbar navbar-custom navbar-expand-lg">
     <div class="container">
       <a class="navbar-brand" href="#"><i class="bi bi-trophy-fill"></i>Plarena</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span
+          class="navbar-toggler-icon"></span></button>
       <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <div class="d-flex flex-wrap gap-2">
           <button class="nav-btn nav-btn-outline" onclick="location.href='#services'">Services</button>
@@ -89,7 +361,8 @@
               <label for="txtPwd" class="form-label">Password</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                <input type="password" class="form-control" id="txtPwd" placeholder="Create a strong password" required />
+                <input type="password" class="form-control" id="txtPwd" placeholder="Create a strong password"
+                  required />
                 <button class="btn btn-outline-secondary" type="button" id="togglePwd">
                   <i class="bi bi-eye" id="eyeIcon"></i>
                 </button>
@@ -162,7 +435,8 @@
   <section class="hero-image">
     <div class="hero-overlay">
       <h2>Players of all levels are invited—just come with heart!</h2>
-      <p>Where every run, pass, and play turns passion into purpose. Join thousands of athletes and organizers building the future of sports.</p>
+      <p>Where every run, pass, and play turns passion into purpose. Join thousands of athletes and organizers building
+        the future of sports.</p>
     </div>
   </section>
 
@@ -181,16 +455,19 @@
         </div>
         <div class="col-md-6 col-lg-4 mb-4">
           <div class="service-card">
-            <img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600&h=400&fit=crop" alt="Find Tournaments">
+            <img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600&h=400&fit=crop"
+              alt="Find Tournaments">
             <div class="service-body">
               <h4><i class="bi bi-search"></i> Find Tournaments</h4>
-              <p>Discover local and national tournaments based on your sport, city, and age group with advanced filters.</p>
+              <p>Discover local and national tournaments based on your sport, city, and age group with advanced filters.
+              </p>
             </div>
           </div>
         </div>
         <div class="col-md-6 col-lg-4 mb-4">
           <div class="service-card">
-            <img src="https://images.unsplash.com/photo-1518459031867-a89b944bffe4?w=600&h=400&fit=crop" alt="Post Events">
+            <img src="https://images.unsplash.com/photo-1518459031867-a89b944bffe4?w=600&h=400&fit=crop"
+              alt="Post Events">
             <div class="service-body">
               <h4><i class="bi bi-calendar-event"></i> Post Events</h4>
               <p>Organizers can easily post, manage, edit, and promote their sports events on our platform.</p>
@@ -199,7 +476,8 @@
         </div>
         <div class="col-md-6 col-lg-4 mb-4">
           <div class="service-card">
-            <img src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&h=400&fit=crop" alt="Player Profiles">
+            <img src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&h=400&fit=crop"
+              alt="Player Profiles">
             <div class="service-body">
               <h4><i class="bi bi-person-badge"></i> Player Profiles</h4>
               <p>Create your profile, showcase your achievements, and connect with teams and tournaments near you.</p>
@@ -208,7 +486,8 @@
         </div>
         <div class="col-md-6 col-lg-4 mb-4">
           <div class="service-card">
-            <img src="https://images.unsplash.com/photo-1551958219-acbc608c6377?w=600&h=400&fit=crop" alt="AI Verification">
+            <img src="https://images.unsplash.com/photo-1551958219-acbc608c6377?w=600&h=400&fit=crop"
+              alt="AI Verification">
             <div class="service-body">
               <h4><i class="bi bi-shield-check"></i> AI Verification</h4>
               <p>Quick and secure identity verification using AI-powered document scanning and validation.</p>
@@ -217,7 +496,8 @@
         </div>
         <div class="col-md-6 col-lg-4 mb-4">
           <div class="service-card">
-            <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&h=400&fit=crop" alt="Admin Control">
+            <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&h=400&fit=crop"
+              alt="Admin Control">
             <div class="service-body">
               <h4><i class="bi bi-gear-fill"></i> Admin Control</h4>
               <p>Comprehensive admin dashboard to manage users, tournaments, and monitor all platform activities.</p>
@@ -231,8 +511,10 @@
   <section class="mission-section" id="mission">
     <div class="container">
       <h2><i class="bi bi-bullseye"></i> Our Mission</h2>
-      <p>To connect athletes, organizers, and sports enthusiasts on a single platform. We believe in making sports accessible to everyone, fostering community, and celebrating every level of competition.</p>
-      <p>Whether you're a weekend warrior or a seasoned pro, our platform empowers you to discover opportunities, connect with like-minded athletes, and take your game to the next level.</p>
+      <p>To connect athletes, organizers, and sports enthusiasts on a single platform. We believe in making sports
+        accessible to everyone, fostering community, and celebrating every level of competition.</p>
+      <p>Whether you're a weekend warrior or a seasoned pro, our platform empowers you to discover opportunities,
+        connect with like-minded athletes, and take your game to the next level.</p>
     </div>
   </section>
 
@@ -256,161 +538,162 @@
   <script>
     // Your full jQuery and AJAX logic from index.html goes here!
     // (See previous replies for the full working script for signup/login/OTP/password strength)
-$(document).ready(function () {
-  // Set API base to live Render URL
-  const API_BASE = "http://localhost:8005";
+    $(document).ready(function () {
+      // Set API base to live Render URL
+      const API_BASE = "";
 
-  // ========== LOGIN WITH OTP ==========
-  $("#btnSendOTP").click(function () {
-    const email = $("#loginEmail").val().trim();
-    if (!email) {
-      alert("Please enter your email!");
-      return;
-    }
-
-    $(this).prop("disabled", true).html('<span class="spinner-border spinner-border-sm"></span> Sending...');
-
-    $.ajax({
-      url: API_BASE + "/sendLoginOTP",
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({ emailid: email }),
-      success: function (response) {
-        alert(response.message);
-        $("#otpSection").slideDown();
-        $("#loginEmail").prop("readonly", true);
-        $("#btnSendOTP").hide();
-      },
-      error: function (xhr) {
-        alert("Error: " + (xhr.responseJSON?.message || xhr.responseText));
-        $("#btnSendOTP").prop("disabled", false).html('<i class="bi bi-send"></i> Send OTP to Email');
-      },
-    });
-  });
-
-  $("#btnResendOTP").click(function() {
-    $("#loginEmail").prop("readonly", false);
-    $("#btnSendOTP").show().prop("disabled", false).html('<i class="bi bi-send"></i> Send OTP to Email');
-    $("#otpSection").hide();
-    $("#loginOTP").val("");
-  });
-
-  $("#loginForm").submit(function (e) {
-    e.preventDefault();
-    const emailid = $("#loginEmail").val().trim();
-    const otp = $("#loginOTP").val().trim();
-
-    if (!otp) {
-      alert("Please enter the OTP!");
-      return;
-    }
-
-    $.ajax({
-      url: API_BASE + "/loginWithOTP",
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({ emailid, otp }),
-      success: function (response) {
-        alert(response.message);
-        localStorage.setItem('userEmail', response.emailid);
-        localStorage.setItem('userType', response.utype);
-
-        // Redirect based on user type
-        if (response.utype === "Player") {
-          window.location.href = "dash-player.html";
-        } else if (response.utype === "Organizer") {
-          window.location.href = "dash-organizer.html";
-        } else if (response.utype === "Admin") {
-          window.location.href = "dashAdmin.html";
+      // ========== LOGIN WITH OTP ==========
+      $("#btnSendOTP").click(function () {
+        const email = $("#loginEmail").val().trim();
+        if (!email) {
+          alert("Please enter your email!");
+          return;
         }
-      },
-      error: function (xhr) {
-        alert("Error: " + xhr.responseText);
-      },
+
+        $(this).prop("disabled", true).html('<span class="spinner-border spinner-border-sm"></span> Sending...');
+
+        $.ajax({
+          url: API_BASE + "/sendLoginOTP",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({ emailid: email }),
+          success: function (response) {
+            alert(response.message);
+            $("#otpSection").slideDown();
+            $("#loginEmail").prop("readonly", true);
+            $("#btnSendOTP").hide();
+          },
+          error: function (xhr) {
+            alert("Error: " + (xhr.responseJSON?.message || xhr.responseText));
+            $("#btnSendOTP").prop("disabled", false).html('<i class="bi bi-send"></i> Send OTP to Email');
+          },
+        });
+      });
+
+      $("#btnResendOTP").click(function () {
+        $("#loginEmail").prop("readonly", false);
+        $("#btnSendOTP").show().prop("disabled", false).html('<i class="bi bi-send"></i> Send OTP to Email');
+        $("#otpSection").hide();
+        $("#loginOTP").val("");
+      });
+
+      $("#loginForm").submit(function (e) {
+        e.preventDefault();
+        const emailid = $("#loginEmail").val().trim();
+        const otp = $("#loginOTP").val().trim();
+
+        if (!otp) {
+          alert("Please enter the OTP!");
+          return;
+        }
+
+        $.ajax({
+          url: API_BASE + "/loginWithOTP",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({ emailid, otp }),
+          success: function (response) {
+            alert(response.message);
+            localStorage.setItem('userEmail', response.emailid);
+            localStorage.setItem('userType', response.utype);
+
+            // Redirect based on user type
+            if (response.utype === "Player") {
+              window.location.href = "dash-player.html";
+            } else if (response.utype === "Organizer") {
+              window.location.href = "dash-organizer.html";
+            } else if (response.utype === "Admin") {
+              window.location.href = "dashAdmin.html";
+            }
+          },
+          error: function (xhr) {
+            alert("Error: " + xhr.responseText);
+          },
+        });
+      });
+
+      // ========== PASSWORD STRENGTH INDICATOR ==========
+      function checkPasswordStrength(password) {
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (password.match(/[a-z]+/)) strength++;
+        if (password.match(/[A-Z]+/)) strength++;
+        if (password.match(/[0-9]+/)) strength++;
+        if (password.match(/[$@#&!]+/)) strength++;
+
+        if (strength <= 2) return "weak";
+        if (strength <= 4) return "medium";
+        return "strong";
+      }
+
+      $("#txtPwd").on("input", function () {
+        const password = $(this).val();
+        const strength = checkPasswordStrength(password);
+        const $bar = $("#passwordStrength");
+        const $text = $("#strengthText");
+
+        $bar.removeClass("strength-weak strength-medium strength-strong");
+
+        if (password.length === 0) {
+          $bar.hide();
+          $text.text("");
+        } else if (strength === "weak") {
+          $bar.show().addClass("strength-weak");
+          $text.html('<span class="text-danger">❌ Weak password</span>');
+        } else if (strength === "medium") {
+          $bar.show().addClass("strength-medium");
+          $text.html('<span class="text-warning">⚠️ Medium password</span>');
+        } else {
+          $bar.show().addClass("strength-strong");
+          $text.html('<span class="text-success">✅ Strong password</span>');
+        }
+      });
+
+      // Toggle password visibility
+      $("#togglePwd").click(function () {
+        const type = $("#txtPwd").attr("type") === "password" ? "text" : "password";
+        $("#txtPwd").attr("type", type);
+        $("#eyeIcon").toggleClass("bi-eye bi-eye-slash");
+      });
+
+      // ========== SIGNUP ==========
+      $("#btnSignup").click(function () {
+        const email = $("#txtEmail").val().trim();
+        const password = $("#txtPwd").val().trim();
+        const utype = $("#comboUser").val();
+
+        if (!email || !password) {
+          alert("Please fill all fields!");
+          return;
+        }
+
+        if (password.length < 6) {
+          alert("Password must be at least 6 characters!");
+          return;
+        }
+
+        $.ajax({
+          url: API_BASE + "/signup",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({ email, password, utype }),
+          success: function (response) {
+            alert(response.message);
+            $("#signupForm")[0].reset();
+            $("#signupModal").modal("hide");
+            $("#passwordStrength").hide();
+            $("#strengthText").text("");
+          },
+          error: function (xhr) {
+            alert("Error: " + (xhr.responseJSON?.message || xhr.responseText));
+          },
+        });
+      });
     });
-  });
 
-  // ========== PASSWORD STRENGTH INDICATOR ==========
-  function checkPasswordStrength(password) {
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (password.match(/[a-z]+/)) strength++;
-    if (password.match(/[A-Z]+/)) strength++;
-    if (password.match(/[0-9]+/)) strength++;
-    if (password.match(/[$@#&!]+/)) strength++;
+  </script>
 
-    if (strength <= 2) return "weak";
-    if (strength <= 4) return "medium";
-    return "strong";
-  }
 
-  $("#txtPwd").on("input", function() {
-    const password = $(this).val();
-    const strength = checkPasswordStrength(password);
-    const $bar = $("#passwordStrength");
-    const $text = $("#strengthText");
-
-    $bar.removeClass("strength-weak strength-medium strength-strong");
-
-    if (password.length === 0) {
-      $bar.hide();
-      $text.text("");
-    } else if (strength === "weak") {
-      $bar.show().addClass("strength-weak");
-      $text.html('<span class="text-danger">❌ Weak password</span>');
-    } else if (strength === "medium") {
-      $bar.show().addClass("strength-medium");
-      $text.html('<span class="text-warning">⚠️ Medium password</span>');
-    } else {
-      $bar.show().addClass("strength-strong");
-      $text.html('<span class="text-success">✅ Strong password</span>');
-    }
-  });
-
-  // Toggle password visibility
-  $("#togglePwd").click(function() {
-    const type = $("#txtPwd").attr("type") === "password" ? "text" : "password";
-    $("#txtPwd").attr("type", type);
-    $("#eyeIcon").toggleClass("bi-eye bi-eye-slash");
-  });
-
-  // ========== SIGNUP ==========
-  $("#btnSignup").click(function () {
-    const email = $("#txtEmail").val().trim();
-    const password = $("#txtPwd").val().trim();
-    const utype = $("#comboUser").val();
-
-    if (!email || !password) {
-      alert("Please fill all fields!");
-      return;
-    }
-
-    if (password.length < 6) {
-      alert("Password must be at least 6 characters!");
-      return;
-    }
-
-    $.ajax({
-      url: API_BASE + "/signup",
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({ email, password, utype }),
-      success: function (response) {
-        alert(response.message);
-        $("#signupForm")[0].reset();
-        $("#signupModal").modal("hide");
-        $("#passwordStrength").hide();
-        $("#strengthText").text("");
-      },
-      error: function (xhr) {
-        alert("Error: " + (xhr.responseJSON?.message || xhr.responseText));
-      },
-    });
-  });
-});
-
-</script>
-
-  
 </body>
+
 </html>
