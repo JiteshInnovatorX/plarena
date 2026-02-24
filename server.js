@@ -38,15 +38,7 @@ cloudinary.config({
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-      ? process.env.EMAIL_PASS.replace(/\s/g, "")
-      : "",
-  },
-});
+// Nodemailer removed in favor of EmailJS due to Render SMTP blocking
 
 //// ================ DATABASE CONNECTION ================
 const db = mysql.createConnection({
@@ -72,30 +64,30 @@ app.post("/sendVerificationCode", (req, res) => {
   if (!email) return res.status(400).send({ message: "Email is required!" });
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   verificationCodes[email] = { code, expiry: Date.now() + 5 * 60 * 1000 };
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: 'Plarena - Email Verification',
-    html: `
-      <div style="font-family: Arial,sans-serif;padding:20px;background:#f4f4f4;">
-        <div style="max-width:600px;margin:0 auto;background:white;padding:30px;border-radius:10px;">
-          <h2 style="color:#007bff;text-align:center;">Email Verification</h2>
-          <p>Hello,</p>
-          <p>Thank you for signing up! Your verification code is:</p>
-          <div style="text-align:center;margin:30px 0;">
-            <span style="font-size:32px;font-weight:bold;color:#007bff;letter-spacing:5px;">${code}</span>
-          </div>
-          <p>This code will expire in 5 minutes.</p>
-          <p>If you didn't request this, please ignore this email.</p>
-          <hr style="margin:20px 0;">
-          <p style="color:#888;font-size:12px;">Plarena Platform</p>
-        </div>
-      </div>`
+  const data = {
+    service_id: 'service_cp5exqe',
+    template_id: 'template_h5f57rm',
+    user_id: '2hDhZJ6g23gN2iMBV',
+    template_params: {
+      email: email,
+      passcode: code,
+      time: new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()
+    }
   };
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) return res.status(500).send({ message: "Failed to send verification email!" });
-    res.send({ message: "Verification code sent to your email!" });
-  });
+
+  fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+    .then(resp => {
+      if (!resp.ok) throw new Error("EmailJS API Error");
+      res.send({ message: "Verification code sent to your email!" });
+    })
+    .catch(error => {
+      console.error("EmailJS Error:", error);
+      res.status(500).send({ message: "Failed to send verification email!" });
+    });
 });
 
 app.post("/verifyCode", (req, res) => {
@@ -146,35 +138,32 @@ app.post("/sendLoginOTP", (req, res) => {
     }
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     loginOTPs[emailid] = { otp, expiry: Date.now() + 5 * 60 * 1000, utype: results[0].utype };
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: emailid,
-      subject: 'Plarena - Login OTP',
-      html: `
-        <div style="font-family:Arial,sans-serif;padding:20px;background:#f4f4f4;">
-          <div style="max-width:600px;margin:0 auto;background:white;padding:30px;border-radius:10px;">
-            <h2 style="color:#007bff;text-align:center;">🔐 Login OTP</h2>
-            <p>Hello,</p>
-            <p>Your One-Time Password for login is:</p>
-            <div style="text-align:center;margin:30px 0;">
-              <span style="font-size:36px;font-weight:bold;color:#007bff;letter-spacing:8px;background:#f0f0f0;padding:15px 30px;border-radius:8px;">${otp}</span>
-            </div>
-            <p style="color:#d9534f;font-weight:bold;">⏰ This OTP will expire in 5 minutes.</p>
-            <p>If you didn't request this, please ignore this email.</p>
-            <hr style="margin:20px 0;">
-            <p style="color:#888;font-size:12px;text-align:center;">Plarena Platform</p>
-          </div>
-        </div>`
-    };
-    console.log("Sending OTP to:", emailid);
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Email Send Error:", error);
-        return res.status(500).send({ message: "Failed to send OTP email!" });
+    const data = {
+      service_id: 'service_cp5exqe',
+      template_id: 'template_h5f57rm',
+      user_id: '2hDhZJ6g23gN2iMBV',
+      template_params: {
+        email: emailid,
+        passcode: otp,
+        time: new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()
       }
-      console.log("Login OTP sent:", info.response);
-      res.send({ message: "OTP sent to your email!" });
-    });
+    };
+
+    console.log("Sending OTP to:", emailid, "via EmailJS");
+    fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+      .then(resp => {
+        if (!resp.ok) throw new Error("EmailJS API Error");
+        console.log("Login OTP sent");
+        res.send({ message: "OTP sent to your email!" });
+      })
+      .catch(error => {
+        console.error("Email Send Error:", error);
+        res.status(500).send({ message: "Failed to send OTP email!" });
+      });
   });
 });
 
