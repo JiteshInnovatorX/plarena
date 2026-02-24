@@ -35,7 +35,8 @@ cloudinary.config({
   api_secret: process.env.CLOUD_API_SECRET
 });
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Hardcoding new API Key to bypass Render environment variable limits during testing
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyDxoVFtKGBcKndIayT9jPPuie38FZbfmyc");
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 
