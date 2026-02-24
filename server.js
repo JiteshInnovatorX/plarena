@@ -38,7 +38,7 @@ cloudinary.config({
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-// Nodemailer removed in favor of EmailJS due to Render SMTP blocking
+
 
 //// ================ DATABASE CONNECTION ================
 const db = mysql.createConnection({
@@ -68,6 +68,7 @@ app.post("/sendVerificationCode", (req, res) => {
     service_id: 'service_cp5exqe',
     template_id: 'template_h5f57rm',
     user_id: '2hDhZJ6g23gN2iMBV',
+    accessToken: 'CeMg6C4Xk-FjJ5UoMMNAd',
     template_params: {
       email: email,
       passcode: code,
@@ -142,6 +143,7 @@ app.post("/sendLoginOTP", (req, res) => {
       service_id: 'service_cp5exqe',
       template_id: 'template_h5f57rm',
       user_id: '2hDhZJ6g23gN2iMBV',
+      accessToken: 'CeMg6C4Xk-FjJ5UoMMNAd',
       template_params: {
         email: emailid,
         passcode: otp,
